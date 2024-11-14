@@ -26,11 +26,14 @@ jobs:
           SSH_AUTHORIZED_KEY: ${{ secrets.SSH_AUTHORIZED_KEY }}
         run: |
           mkdir -p -m 0700 "${HOME}/.ssh"
+          chmod -R u+rwX,go-rwx "${HOME}/.ssh"
           echo "$SSH_KEY" > "${HOME}/.ssh/id_ed25519"
           echo "$SSH_AUTHORIZED_KEY" > "${HOME}/.ssh/authorized_keys"
-      - name: Check status
+      - name: SSH Forwarding
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_REMOTE: ${{ secrets.SSH_REMOTE }}
         run: |
-          sleep 10
-          ls -alR "${HOME}"
-          sudo ps aux
-          sleep 60
+          ssh -o StrictHostKeyChecking=no -N -R "${SSH_REMOTE}" -p "${SSH_PORT}" "${SSH_HOST}" 1>/dev/null 2>&1 &
+          sleep 7200
